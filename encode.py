@@ -22,11 +22,19 @@ def _decode( s ):
     return x
 
 
+
 _address_prefix = 'r.'
 
+import os
+def mail_domain():
+    app_id = os.environ.get('APPLICATION_ID', '')
+    return '%s.appspotmail.com' % app_id
+
 def address_to_id( addr ):
+    # pull out just the username portion of the email address
+    addr = addr.split('<')[-1].split('>')[0].split('@')[0]
     assert addr.startswith( _address_prefix )
     return _decode( addr.split( _address_prefix )[-1] )
 
 def id_to_address( id ):
-    return _address_prefix + _encode( id )
+    return _address_prefix + _encode( id ) + '@' + mail_domain()

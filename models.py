@@ -1,8 +1,11 @@
 from google.appengine.ext import db
 from google.appengine.api import urlfetch
+from google.appengine.api import mail
 import urllib
 from dateutil import parser
 import logging
+from encode import *
+import os
 
 def parse_time(tz, text):
     # TODO: modify to parse send-date as well for relative time expressions
@@ -10,22 +13,23 @@ def parse_time(tz, text):
     if response.status_code == 200:
         return response.content
 
-def create_reminder( s, tz ):
+def create_reminder( s, tz, user ):
     try:
-        reminder = Reminder( parse=s, timezone=tz )
+        reminder = Reminder( parse=s, timezone=tz, user=user )
         reminder.put()
         return reminder
     except:
         logging.error( 'Failed to create Reminder for request "%s"' % s )
 
 class Reminder(db.Model):
-    user = db.UserProperty(auto_current_user_add=True)
+    user = db.UserProperty(required=True)
     raw = db.StringProperty(required=True)
     text = db.StringProperty()
     scheduled_raw = db.StringProperty()
     scheduled = db.DateTimeProperty()
     created = db.DateTimeProperty(auto_now_add=True)
     updated = db.DateTimeProperty(auto_now=True)
+    fired = db.BooleanProperty(default=False)
     
     def __init__(self, *args, **kwargs):
         if 'parse' in kwargs:

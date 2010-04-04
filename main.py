@@ -10,6 +10,7 @@ from google.appengine.api import mail
 from datetime import datetime
 import logging
 from models import *
+from encode import *
 #import key
 
 def notify(user, text, title, link=None):
@@ -25,9 +26,9 @@ class MainHandler(webapp.RequestHandler):
         user = users.get_current_user()
         failed = self.request.get('failed')
         if user:
-            logout_url = users.create_logout_url("/")
-            reminders = Reminder.all().filter('user =', user).fetch(1000)
             account = Account.all().filter('user =', user).fetch(10)
+            logout_url = users.create_logout_url("/")
+            reminders = Reminder.all().filter('user =', user).filter('fired =', False).fetch(1000)
             if account:
                 assert len(account) == 1
                 account = account[0]
@@ -53,20 +54,29 @@ class MainHandler(webapp.RequestHandler):
             account.emails = [ e.strip() for e in self.request.get('emails').split(',') ]
             account.put()
         else:
-            create_reminder( self.request.get('raw'), account.tz )
+            if not create_reminder( self.request.get('raw'), account.tz, account.user ):
+                return self.redirect('/?failed=1')
             #notify(user, str(reminder.scheduled_local()), "Reminder Scheduled")
-        self.redirect('/?failed=1')
+        self.redirect('/')
     
+
+def send_reminder( reminder ):
+    address = id_to_address( reminder.key().id() )
+    mail.send_mail( sender=address, to=reminder.user.email(),
+                    subject=reminder.text,
+                    body="On %s you asked to be reminded:\n\n\t%s\n\nat %s" % ( str(reminder.created), reminder.raw, str(reminder.scheduled))
+                )
 
 class CheckHandler(webapp.RequestHandler):
     def get(self):
         while True:
-            reminders = Reminder.all().filter('scheduled <=', datetime.now()).fetch(1000)
+            reminders = Reminder.all().filter('fired =', False).filter('scheduled <=', datetime.now()).fetch(1000)
             if not reminders:
                 break
             for reminder in reminders:
-                notify(reminder.user, reminder.text, "Reminder")
-                reminder.delete()
+                send_reminder(reminder)
+                reminder.fired = True
+                reminder.put()
         self.response.out.write("ok")
 
 def main():
