@@ -11,20 +11,19 @@
     {% if user %}
     
     <div id="list_body">
-      <form action="/" method="post">
-        <div id="nav">
-          <p class="account">Welcome, {{ user.nickname }}. <a href="{{ logout_url }}">Logout</a></p>
+      <div id="nav">
+        <p class="account">Welcome, {{ user.nickname }}. <a href="{{ logout_url }}">Logout</a></p>
+        <form action="/" method="post">
           <p class="timezone">You're in <select name="tz">
-            <option>PST</option>
-            <option selected="selected">PDT</option>
-            <option>MST</option>
-            <option>MDT</option>
-            <option>CST</option>
-            <option>CDT</option>
-            <option>EST</option>
-            <option>EDT</option>
+            {% for tz in timezones %}
+            <option {% ifequal account.tz tz %} selected="selected" {% endifequal %}>{{ tz }}</option>
+            {% endfor %}
             </select></p>
-        </div>	
+          <input type="text" name="emails" value="{{ emails }}" />
+          <input type="submit" value="Update" />
+        </form>
+      </div>	
+      <form action="/" method="post">
         <h2>New Reminder:</h2>
         <input type="text" class="reminder" name="raw"/>	
         <input type="submit" class="submit" value=""/>

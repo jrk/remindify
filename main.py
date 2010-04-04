@@ -13,6 +13,7 @@ from datetime import datetime
 import urllib, hashlib
 from dateutil import parser
 import encode
+import logging
 #import key
 
 def notify(user, text, title, link=None):
@@ -60,12 +61,17 @@ class Reminder(db.Model):
 
 class Account(db.Model):
     user = db.UserProperty(required=True)
-    emails = db.ListProperty( db.Email )
+    emails = db.StringListProperty( )
+    tz = db.StringProperty(default='PDT')
+    
+    timezones = [ 'PST', 'PDT', 'MST', 'MDT', 'CST', 'CDT', 'EST', 'EDT' ]
     
     def __init__(self, *args, **kwargs):
         if 'emails' not in kwargs:
             kwargs['emails'] = []
-        kwargs['emails'].append( db.Email( kwargs['user'].email() ) )
+        if kwargs['user'].email() not in kwargs['emails']:
+            kwargs['emails'].append( kwargs['user'].email() )
+        
         super(Account, self).__init__(*args, **kwargs)
     
 
@@ -75,29 +81,38 @@ class MainHandler(webapp.RequestHandler):
         if user:
             logout_url = users.create_logout_url("/")
             reminders = Reminder.all().filter('user =', user).fetch(1000)
-            account = Account.all().filter('user =', user).fetch(1000)
+            account = Account.all().filter('user =', user).fetch(10)
             if account:
+                assert len(account) == 1
                 account = account[0]
             else:
                 # Create account if it doesn't yet exist
                 account = Account(user=user)
                 account.put()
+            emails = ', '.join( account.emails )
         else:
             login_url = users.create_login_url('/')
+        timezones = Account.timezones
         self.response.out.write(template.render('main.html', locals()))
     
     def post(self):
         user = users.get_current_user()
+        account = Account.all().filter('user =', user).fetch(1)[0]
         if self.request.get('id'):
             reminder = Reminder.get_by_id(int(self.request.get('id')))
             if reminder.user == user:
                 reminder.delete()
+        if self.request.get('tz'):
+            account.tz = self.request.get('tz')
+            account.emails = [ e.strip() for e in self.request.get('emails').split(',') ]
+            account.put()
         else:
             reminder = Reminder(parse=self.request.get('raw'), timezone=self.request.get('tz'))
             reminder.put()
             notify(user, str(reminder.scheduled_local()), "Reminder Scheduled")
         self.redirect('/')
-        
+    
+
 class CheckHandler(webapp.RequestHandler):
     def get(self):
         while True:
