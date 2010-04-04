@@ -12,6 +12,7 @@ from google.appengine.api import mail
 from datetime import datetime
 import urllib, hashlib
 from dateutil import parser
+import encode
 #import key
 
 def notify(user, text, title, link=None):
