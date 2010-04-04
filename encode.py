@@ -8,7 +8,7 @@ def _encode( x ):
     assert( x > 0 )
     s = ''
     while x:
-        s = _i2a[ x & 0b11111 ] + s
+        s = _i2a[ x & 0x1F ] + s
         x = x >> 5
     return s
 
