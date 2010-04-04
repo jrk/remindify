@@ -22,6 +22,7 @@ def create_reminder( s, tz, user ):
         logging.error( 'Failed to create Reminder for request "%s"' % s )
 
 class Reminder(db.Model):
+    # TODO: replace user with account reference, to avoid needless queries
     user = db.UserProperty(required=True)
     raw = db.StringProperty(required=True)
     text = db.StringProperty()
@@ -30,6 +31,7 @@ class Reminder(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
     updated = db.DateTimeProperty(auto_now=True)
     fired = db.BooleanProperty(default=False)
+    #TODO: recurrence
     
     def __init__(self, *args, **kwargs):
         if 'parse' in kwargs:
