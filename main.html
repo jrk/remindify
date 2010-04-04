@@ -37,8 +37,6 @@
           <input type="hidden" name="id" value="{{ reminder.key.id }}" />
           <input type="submit" value="Delete" /></form></li>
         {% endfor %}
-      {% else %}
-      <p class="note">Your reminders will be sent to you via <a href="http://notify.io">notify.io</a>, so be sure to have an account!</p>
       {% endif %}
     </div>
     <div id="footer"></div>
@@ -54,38 +52,17 @@
     {% endif %}
     
     </div>
-    <script type="text/javascript">
-    var uservoiceOptions = {
-      /* required */
-      key: 'remindify',
-      host: 'remindify.uservoice.com', 
-      forum: '33739',
-      showTab: true,  
-      /* optional */
-      alignment: 'left',
-      background_color:'#4A9ED6', 
-      text_color: 'white',
-      hover_color: '#75B17D',
-      lang: 'en'
-    };
-
-    function _loadUserVoice() {
-      var s = document.createElement('script');
-      s.setAttribute('type', 'text/javascript');
-      s.setAttribute('src', ("https:" == document.location.protocol ? "https://" : "http://") + "cdn.uservoice.com/javascripts/widgets/tab.js");
-      document.getElementsByTagName('head')[0].appendChild(s);
-    }
-    _loadSuper = window.onload;
-    window.onload = (typeof window.onload != 'function') ? _loadUserVoice : function() { _loadSuper(); _loadUserVoice(); };
-    </script>
+    {% if false %}
+    <!-- Disable for now -->
     <script type="text/javascript">
     var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
     document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
     </script>
     <script type="text/javascript">
     try {
-    var pageTracker = _gat._getTracker("UA-6824126-10");
+    var pageTracker = _gat._getTracker("UA-XXXX-XX");
     pageTracker._trackPageview();
     } catch(err) {}</script>
+    {% endif %}
   </body>
 </html>

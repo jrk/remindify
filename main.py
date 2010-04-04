@@ -12,16 +12,18 @@ from google.appengine.api import mail
 from datetime import datetime
 import urllib, hashlib
 from dateutil import parser
-import key
+#import key
 
 def notify(user, text, title, link=None):
     params = {'text':text,'title':title, 'icon': 'http://www.remindify.com/favicon.ico'}
     if link:
         params['link'] = link
-    urlfetch.fetch('http://api.notify.io/v1/notify/%s?api_key=%s' % (hashlib.md5(user.email()).hexdigest(), key.api_key), method='POST', payload=urllib.urlencode(params))
+    #urlfetch.fetch('http://api.notify.io/v1/notify/%s?api_key=%s' % (hashlib.md5(user.email()).hexdigest(), key.api_key), method='POST', payload=urllib.urlencode(params))
+    # TODO: update to send mail, with untique address per-reminder
 
 
 def parse_time(tz, text):
+    # TODO: modify to parse send-date as well for relative time expressions
     response = urlfetch.fetch('http://www.timeapi.org/%s/%s' % (tz.lower(), urllib.quote(text)))
     if response.status_code == 200:
         return response.content
@@ -53,7 +55,18 @@ class Reminder(db.Model):
         if len(ins) == 2:
             return (ins[0], parse_time(timezone, 'in %s' % ins[1]))
         return raw, None
-        
+    
+
+class Account(db.Model):
+    user = db.UserProperty(required=True)
+    emails = db.ListProperty( db.Email )
+    
+    def __init__(self, *args, **kwargs):
+        if 'emails' not in kwargs:
+            kwargs['emails'] = []
+        kwargs['emails'].append( db.Email( kwargs['user'].email() ) )
+        super(Account, self).__init__(*args, **kwargs)
+    
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
@@ -61,6 +74,13 @@ class MainHandler(webapp.RequestHandler):
         if user:
             logout_url = users.create_logout_url("/")
             reminders = Reminder.all().filter('user =', user).fetch(1000)
+            account = Account.all().filter('user =', user).fetch(1000)
+            if account:
+                account = account[0]
+            else:
+                # Create account if it doesn't yet exist
+                account = Account(user=user)
+                account.put()
         else:
             login_url = users.create_login_url('/')
         self.response.out.write(template.render('main.html', locals()))
@@ -79,10 +99,13 @@ class MainHandler(webapp.RequestHandler):
         
 class CheckHandler(webapp.RequestHandler):
     def get(self):
-        reminders = Reminder.all().filter('scheduled <=', datetime.now())
-        for reminder in reminders:
-            notify(reminder.user, reminder.text, "Reminder")
-            reminder.delete()
+        while True:
+            reminders = Reminder.all().filter('scheduled <=', datetime.now()).fetch(1000)
+            if not reminders:
+                break
+            for reminder in reminders:
+                notify(reminder.user, reminder.text, "Reminder")
+                reminder.delete()
         self.response.out.write("ok")
 
 def main():
