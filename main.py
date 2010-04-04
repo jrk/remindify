@@ -64,7 +64,7 @@ class MainHandler(webapp.RequestHandler):
 
 def send_reminder( reminder ):
     address = id_to_address( reminder.key().id() )
-    mail.send_mail( sender=address, to=reminder.user.email(),
+    mail.send_mail( sender=from_field( address ), to=reminder.user.email(),
                     subject=reminder.text,
                     body="On %s you asked to be reminded:\n\n\t%s\n\nat %s" % ( str(reminder.created), reminder.raw, str(reminder.scheduled))
                 )

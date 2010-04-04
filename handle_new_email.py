@@ -15,7 +15,7 @@ class NewPingHandler(InboundMailHandler):
         # Unauthorized
         if not acct:
             logging.info( "Sender %s unauthorized. Dropping." % msg.sender )
-            mail.send_mail( sender='p@%s' % mail_domain(), to=msg.sender,
+            mail.send_mail( sender=from_field( 'p' ), to=msg.sender,
                             subject='Re: '+msg.subject,
                             body="I don't know you." )
             return
@@ -45,7 +45,7 @@ class NewPingHandler(InboundMailHandler):
         if failedCmds:
             errMsg = 'I failed to parse the following commands:\n\n%s' % '\n\n'.join( failedCmds )
             logging.error( 'Replying: ' + errMsg )
-            mail.send_mail( sender='p@%s' % mail_domain(), to=msg.sender,
+            mail.send_mail( sender=from_field( 'p' ), to=msg.sender,
                             subject='Re: '+msg.subject,
                             body=errMsg)
     

@@ -30,6 +30,11 @@ def mail_domain():
     app_id = os.environ.get('APPLICATION_ID', '')
     return '%s.appspotmail.com' % app_id
 
+def from_field( addr ):
+    if '@%s'%mail_domain() not in addr:
+        addr = addr + '@' + mail_domain()
+    return 'Ping <%s>' % addr
+
 def address_to_id( addr ):
     # pull out just the username portion of the email address
     addr = addr.split('<')[-1].split('>')[0].split('@')[0]
