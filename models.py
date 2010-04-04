@@ -50,6 +50,23 @@ class Reminder(db.Model):
             return (ins[0], parse_time(timezone, 'in %s' % ins[1]))
         return raw, None
     
+    def parse_and_update(self, raw, timezone):
+        self.scheduled_raw = parse_time(timezone, raw)
+        logging.info( 'parse_and_update returned raw: ' + str(self.scheduled_raw) )
+        self.scheduled = self.scheduled_local()
+        self.fired = False
+    
+
+def account_for_sender( sender ):
+    if '<' in sender:
+        sender = sender.split('<')[-1].split('>')[0]
+    accts = Account.gql( "WHERE emails = :sender", sender=sender ).fetch(2)
+    if not accts:
+        return None
+    if len( accts ) > 1:
+        logging.error( 'Matched multiple accounts for sender %s---this should not happen' % sender )
+        return None
+    return accts[ 0 ]
 
 class Account(db.Model):
     user = db.UserProperty(required=True)

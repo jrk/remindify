@@ -6,18 +6,6 @@ from google.appengine.api import mail
 from google.appengine.api.urlfetch import fetch
 from models import *
 
-def account_for_sender( sender ):
-    if '<' in sender:
-        sender = sender.split('<')[-1].split('>')[0]
-    accts = Account.gql( "WHERE emails = :sender", sender=sender ).fetch(2)
-    if not accts:
-        return None
-    if len( accts ) > 1:
-        logging.error( 'Matched multiple accounts for sender %s---this should not happen' % sender )
-        return None
-    return accts[ 0 ]
-
-
 class NewPingHandler(InboundMailHandler):
     def receive(self, msg):
         logging.info( "New handler received a message from %s at %s" % ( msg.sender, msg.date ) )
