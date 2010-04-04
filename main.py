@@ -107,9 +107,12 @@ class MainHandler(webapp.RequestHandler):
             account.emails = [ e.strip() for e in self.request.get('emails').split(',') ]
             account.put()
         else:
-            reminder = Reminder(parse=self.request.get('raw'), timezone=self.request.get('tz'))
-            reminder.put()
-            notify(user, str(reminder.scheduled_local()), "Reminder Scheduled")
+            try:
+                reminder = Reminder(parse=self.request.get('raw'), timezone=account.tz)
+                reminder.put()
+                #notify(user, str(reminder.scheduled_local()), "Reminder Scheduled")
+            except:
+                logging.error( 'Failed to create Reminder for request "%s"' % self.request.get('raw') )
         self.redirect('/')
     
 
