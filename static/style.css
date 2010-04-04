@@ -8,6 +8,18 @@ body {
 	margin:0;
 }
 
+.warning {
+  border: 1px dashed red;
+  margin: 3em 25%;
+  clear: both;
+  padding: 0em 1em;
+  width: 50%;
+  background: pink;
+  text-align: center;
+  font-weight: bold;
+  font-style: italic;
+}
+
 #content {
 	margin: 0 auto;
 	width: 600px;
