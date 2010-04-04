@@ -28,7 +28,9 @@ class MainHandler(webapp.RequestHandler):
         if user:
             account = Account.all().filter('user =', user).fetch(10)
             logout_url = users.create_logout_url("/")
-            reminders = Reminder.all().filter('user =', user).filter('fired =', False).fetch(1000)
+            #reminders = Reminder.all().filter('user =', user).filter('fired =', False).fetch(1000)
+            reminders = Reminder.all().filter('user =', user).fetch(1000)
+            reminders = [r for r in reminders if not r.fired]
             if account:
                 assert len(account) == 1
                 account = account[0]
@@ -70,7 +72,9 @@ def send_reminder( reminder ):
 class CheckHandler(webapp.RequestHandler):
     def get(self):
         while True:
-            reminders = Reminder.all().filter('fired =', False).filter('scheduled <=', datetime.now()).fetch(1000)
+            #reminders = Reminder.all().filter('fired =', False).filter('scheduled <=', datetime.now()).fetch(1000)
+            reminders = Reminder.all().filter('scheduled <=', datetime.now()).fetch(1000)
+            reminders = [r for r in reminders if not r.fired]
             if not reminders:
                 break
             for reminder in reminders:
