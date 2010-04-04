@@ -11,6 +11,8 @@ from datetime import datetime
 import logging
 from models import *
 from encode import *
+from dateutil.tz import gettz, tzutc
+from timezones import TimeZone
 #import key
 
 def notify(user, text, title, link=None):
@@ -64,11 +66,19 @@ class MainHandler(webapp.RequestHandler):
         self.redirect('/')
     
 
+def format_datetime( dt, tz ):
+    date_format = '%A, %B %d at %I:%M %p'
+    return dt.replace(tzinfo=tzutc()).astimezone( TimeZone[ tz ] ).strftime( date_format )
+    
 def send_reminder( reminder ):
     address = id_to_address( reminder.key().id() )
+    account = Account.all().filter('user =', reminder.user).fetch(2)[0]
+    created = format_datetime( reminder.created, account.tz )
+    scheduled = format_datetime( reminder.scheduled, account.tz )
+    logging.info( 'Created: %s, Schedule: %s' % (created, scheduled) )
     mail.send_mail( sender=from_field( address ), to=reminder.user.email(),
                     subject=reminder.text,
-                    body="On %s you asked to be reminded:\n\n\t%s\n\nat %s" % ( str(reminder.created), reminder.raw, str(reminder.scheduled))
+                    body="On %s you asked to be reminded:\n\n\t%s\n\nat %s" % ( created, reminder.raw, scheduled)
                 )
 
 class CheckHandler(webapp.RequestHandler):
