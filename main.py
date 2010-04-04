@@ -36,8 +36,10 @@ class MainHandler(webapp.RequestHandler):
                 account = account[0]
             else:
                 # Create account if it doesn't yet exist
-                account = Account(user=user)
-                account.put()
+                #account = Account(user=user)
+                #account.put()
+                self.response.out.write('unauthorized')
+                return
             emails = ', '.join( account.emails )
         else:
             login_url = users.create_login_url('/')
