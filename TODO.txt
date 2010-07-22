@@ -1,0 +1,8 @@
+- Accelerate cron task
+- Improve parsing heuristics: only split at _last_ in/at token
+- Put logging into parse-failed path
+- Add retries to time API? This seems to require a nontrivial delay.
+
+Longer-term:
+------------
+- Move to our own time parsing API
