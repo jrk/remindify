@@ -86,12 +86,11 @@ def send_reminder( reminder ):
 
 class CheckHandler(webapp.RequestHandler):
     def get(self):
-        while True:
-            #reminders = Reminder.all().filter('fired =', False).filter('scheduled <=', datetime.now()).fetch(1000)
-            reminders = Reminder.all().filter('scheduled <=', datetime.now()).fetch(1000)
-            reminders = [r for r in reminders if not r.fired]
-            if not reminders:
-                break
+        q = Reminder.all().filter('fired =', False).filter('scheduled <=', datetime.now())
+        logging.info( 'CheckHandler iterating with count = %d', q.count() )
+        while q.count():
+            reminders = q.fetch(20)
+            q.with_cursor( q.cursor() ) # save location for next iteration
             for reminder in reminders:
                 send_reminder(reminder)
                 reminder.fired = True
