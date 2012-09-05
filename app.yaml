@@ -1,5 +1,5 @@
-application: jrkping
-version: 2010-11-07-2
+application: jrkping-hrd
+version: 2012-09-05-1
 runtime: python
 api_version: 1
 
